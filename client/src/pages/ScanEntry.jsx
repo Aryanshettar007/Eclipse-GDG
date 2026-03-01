@@ -12,14 +12,10 @@ export default function ScanEntry() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Auto-focus input
   useEffect(() => {
-    if (!cooldown && inputRef.current) {
-      inputRef.current.focus();
-    }
+    if (!cooldown && inputRef.current) inputRef.current.focus();
   }, [cooldown, result]);
 
-  // Fetch initial inside count
   useEffect(() => {
     if (user?.role === 'admin') {
       api.get('/analytics').then(res => {
@@ -58,18 +54,37 @@ export default function ScanEntry() {
     setTimeout(() => {
       setCooldown(false);
       setResult(null);
-    }, 2000);
+    }, 1500);
   }, [rfid, cooldown]);
 
   return (
     <div className="scanner-page">
-      <div className="scanner-nav">
-        {user?.role === 'admin' && (
-          <button className="btn btn-secondary btn-sm" onClick={() => navigate('/admin')}>
-            ⬅ Dashboard
-          </button>
-        )}
-        <button className="btn btn-secondary btn-sm" onClick={logout}>Logout</button>
+      {/* Top branding bar */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '12px 24px', zIndex: 10
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img src="/gdg_logo.png" alt="GDG" style={{ height: '36px' }} />
+          <div>
+            <div style={{
+              fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem',
+              background: 'linear-gradient(135deg, var(--accent-light), var(--accent))',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
+            }}>ECLIPSE</div>
+            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              24 HR National Level Hackathon
+            </div>
+          </div>
+        </div>
+
+        <div className="scanner-nav" style={{ position: 'static' }}>
+          {user?.role === 'admin' && (
+            <button className="btn btn-secondary btn-sm" onClick={() => navigate('/admin')}>⬅ Dashboard</button>
+          )}
+          <button className="btn btn-secondary btn-sm" onClick={logout}>Logout</button>
+        </div>
       </div>
 
       {!result ? (
@@ -93,7 +108,7 @@ export default function ScanEntry() {
               />
             </form>
             <p className="scanner-hint">
-              {cooldown ? '⏳ Cooldown...' : '📡 Waiting for RFID scan'}
+              {cooldown ? '⏳ Processing...' : '📡 Waiting for RFID scan'}
             </p>
           </div>
         </>
@@ -131,6 +146,7 @@ export default function ScanEntry() {
           <div className="stat-lbl">Volunteers</div>
         </div>
       </div>
+
     </div>
   );
 }

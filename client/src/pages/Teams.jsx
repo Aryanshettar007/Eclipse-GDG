@@ -3,14 +3,21 @@ import api from '../services/api';
 
 export default function Teams() {
   const [teams, setTeams] = useState([]);
+  const [mentors, setMentors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showMentorModal, setShowMentorModal] = useState(null); // team id
   const [teamName, setTeamName] = useState('');
+  const [selectedMentor, setSelectedMentor] = useState('');
 
   const fetchTeams = async () => {
     try {
-      const res = await api.get('/teams');
-      setTeams(res.data);
+      const [teamsRes, volunteersRes] = await Promise.all([
+        api.get('/teams'),
+        api.get('/volunteers')
+      ]);
+      setTeams(teamsRes.data);
+      setMentors(volunteersRes.data.filter(v => v.role === 'mentor'));
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
@@ -35,6 +42,23 @@ export default function Teams() {
       await api.delete(`/teams/${id}`);
       fetchTeams();
     } catch (err) { alert('Failed to delete'); }
+  };
+
+  const openMentorModal = (team) => {
+    setShowMentorModal(team._id);
+    setSelectedMentor(team.mentor?._id || '');
+  };
+
+  const handleAssignMentor = async () => {
+    try {
+      await api.put(`/teams/${showMentorModal}`, {
+        mentorId: selectedMentor || null
+      });
+      setShowMentorModal(null);
+      fetchTeams();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to assign mentor');
+    }
   };
 
   return (
@@ -73,12 +97,17 @@ export default function Teams() {
                 </div>
               </div>
 
-              <div style={{ marginBottom: 12 }}>
-                <span className="text-muted text-sm">Mentor: </span>
-                {team.mentor
-                  ? <span style={{ color: 'var(--accent-light)', fontWeight: 600 }}>{team.mentor.name}</span>
-                  : <span className="text-muted">Unassigned</span>
-                }
+              <div style={{ marginBottom: 12 }} className="flex items-center justify-between">
+                <div>
+                  <span className="text-muted text-sm">Mentor: </span>
+                  {team.mentor
+                    ? <span style={{ color: 'var(--accent-light)', fontWeight: 600 }}>{team.mentor.name}</span>
+                    : <span className="text-muted">Unassigned</span>
+                  }
+                </div>
+                <button className="btn btn-secondary btn-sm" onClick={() => openMentorModal(team)}>
+                  {team.mentor ? '✏️ Change' : '➕ Assign'}
+                </button>
               </div>
 
               <div>
@@ -103,6 +132,7 @@ export default function Teams() {
         </div>
       )}
 
+      {/* Create Team Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
@@ -118,6 +148,34 @@ export default function Teams() {
                 <button type="submit" className="btn btn-primary">Create Team</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Mentor Modal */}
+      {showMentorModal && (
+        <div className="modal-overlay" onClick={() => setShowMentorModal(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3>Assign Mentor</h3>
+            <div className="form-group">
+              <label>Select Mentor</label>
+              <select className="form-select" value={selectedMentor}
+                onChange={e => setSelectedMentor(e.target.value)}>
+                <option value="">— No Mentor —</option>
+                {mentors.map(m => (
+                  <option key={m._id} value={m._id}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+            {mentors.length === 0 && (
+              <p className="text-muted text-sm" style={{ marginBottom: 16 }}>
+                No mentors found. Add volunteers with the "Mentor" role first.
+              </p>
+            )}
+            <div className="modal-actions">
+              <button className="btn btn-secondary" onClick={() => setShowMentorModal(null)}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleAssignMentor}>Save</button>
+            </div>
           </div>
         </div>
       )}

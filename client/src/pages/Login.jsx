@@ -33,7 +33,7 @@ export default function Login() {
           <img src="/gdg_logo.png" alt="GDG JSSATEB" style={{ width: '100px', marginBottom: '12px' }} />
         </div>
         <h1>ECLIPSE</h1>
-        <p className="login-subtitle">24 HR National Hackathon — Management System</p>
+        <p className="login-subtitle">24 HR National Level Hackathon</p>
 
         {error && <div className="login-error">{error}</div>}
 

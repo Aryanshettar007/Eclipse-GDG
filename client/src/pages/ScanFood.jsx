@@ -13,7 +13,6 @@ export default function ScanFood() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Fetch active meal
   useEffect(() => {
     const fetchMeal = () => {
       api.get('/meals/config').then(res => {
@@ -22,7 +21,7 @@ export default function ScanFood() {
       }).catch(() => {});
     };
     fetchMeal();
-    const interval = setInterval(fetchMeal, 10000); // refresh every 10s
+    const interval = setInterval(fetchMeal, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -58,26 +57,49 @@ export default function ScanFood() {
     setTimeout(() => {
       setCooldown(false);
       setResult(null);
-    }, 3000);
+    }, 1500);
   }, [rfid, cooldown, activeMeal]);
 
   return (
     <div className="scanner-page">
-      <div className="scanner-nav">
-        {user?.role === 'admin' && (
-          <button className="btn btn-secondary btn-sm" onClick={() => navigate('/admin')}>
-            ⬅ Dashboard
-          </button>
-        )}
-        <button className="btn btn-secondary btn-sm" onClick={logout}>Logout</button>
-      </div>
-
-      {activeMeal && (
-        <div className="scanner-active-meal">
-          <div className="meal-label">Active Meal</div>
-          <div className="meal-name">{activeMeal.label}</div>
+      {/* Top branding bar */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '12px 24px', zIndex: 10
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img src="/gdg_logo.png" alt="GDG" style={{ height: '36px' }} />
+          <div>
+            <div style={{
+              fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem',
+              background: 'linear-gradient(135deg, var(--accent-light), var(--accent))',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
+            }}>ECLIPSE</div>
+            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              24 HR National Level Hackathon
+            </div>
+          </div>
         </div>
-      )}
+
+        <div className="flex gap-8" style={{ display: 'flex', alignItems: 'center' }}>
+          {activeMeal && (
+            <div style={{
+              background: 'var(--bg-card)', border: '1px solid var(--accent)',
+              borderRadius: 'var(--radius-sm)', padding: '6px 14px', textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', letterSpacing: '1px', textTransform: 'uppercase' }}>Active</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--accent-light)', fontSize: '0.9rem' }}>
+                {activeMeal.label}
+              </div>
+            </div>
+          )}
+          {user?.role === 'admin' && (
+            <button className="btn btn-secondary btn-sm" onClick={() => navigate('/admin')}>⬅ Dashboard</button>
+          )}
+          <button className="btn btn-secondary btn-sm" onClick={logout}>Logout</button>
+        </div>
+      </div>
 
       {!result ? (
         <>
@@ -107,7 +129,7 @@ export default function ScanFood() {
               {!activeMeal
                 ? '⛔ Ask admin to activate a meal'
                 : cooldown
-                  ? '⏳ Cooldown...'
+                  ? '⏳ Processing...'
                   : '📡 Waiting for RFID scan'}
             </p>
           </div>
@@ -142,6 +164,7 @@ export default function ScanFood() {
           <div className="stat-lbl">Active Meal</div>
         </div>
       </div>
+
     </div>
   );
 }
