@@ -38,10 +38,10 @@ router.post('/entry', auth, roleCheck('admin', 'volunteer_entry'), async (req, r
     // 5-second cooldown check
     if (person.lastScanAt) {
       const diffMs = Date.now() - new Date(person.lastScanAt).getTime();
-      if (diffMs < 5000) {
+      if (diffMs < 2000) {
         return res.status(429).json({
           error: 'Cooldown active. Please wait before scanning again.',
-          remainingMs: 5000 - diffMs
+          remainingMs: 2000 - diffMs
         });
       }
     }
