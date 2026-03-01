@@ -17,13 +17,17 @@ router.post('/login', async (req, res) => {
 
     const user = await User.findOne({ username: username.toLowerCase() });
     if (!user) {
+      console.log(`❌ Login failed: User "${username}" not found`);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      console.log(`❌ Login failed: Password mismatch for "${username}"`);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+    
+    console.log(`✅ Login successful: "${username}"`);
 
     const token = jwt.sign(
       { id: user._id, username: user.username, role: user.role },
